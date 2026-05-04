@@ -1,64 +1,183 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import { getVans, createVan, Van } from "@/services/vans";
+import { VanCard } from "@/components/VanCard";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/components/AuthProvider";
+import { Search, MapPin, Truck } from "lucide-react";
+
+const BRANDS = ["Citroën", "Peugeot", "Renault", "Ford", "Mercedes", "Volkswagen"];
+const MODELS = ["Jumper", "Boxer", "Transit", "Sprinter", "Crafter", "Partner"];
+const LOCATIONS = [
+  "Madrid, centro",
+  "Barcelona, Gràcia",
+  "Valencia, centre",
+  "Sevilla, centro",
+  "Bilbao, centro",
+  "Málaga, centro",
+];
+
+const ADMIN_EMAIL = "ibrahim.riani91@gmail.com";
+
+function generateRandomVan(): Partial<Van> {
+  const brand = BRANDS[Math.floor(Math.random() * BRANDS.length)];
+  const model = MODELS[Math.floor(Math.random() * MODELS.length)];
+  const location = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+  const pricePerDay = Math.floor(Math.random() * 150 + 50) * 100;
+
+  return {
+    owner_id: null,
+    brand,
+    model,
+    description: `Furgoneta ${brand} ${model} perfecta para mudanzas o transporte.`,
+    price_per_day: pricePerDay,
+    location,
+    photos: null,
+  };
+}
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 export default function Home() {
+  const { user } = useAuth();
+  const [allVans, setAllVans] = useState<Van[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const debouncedSearch = useDebounce(searchQuery, 150);
+
+  useEffect(() => {
+    loadAllVans();
+  }, []);
+
+  async function loadAllVans() {
+    setLoading(true);
+    const data = await getVans();
+    setAllVans(data);
+    setLoading(false);
+  }
+
+  async function addTestVan() {
+    setAdding(true);
+    const van = generateRandomVan() as Omit<Van, "id" | "created_at" | "updated_at">;
+    await createVan(van);
+    await loadAllVans();
+    setAdding(false);
+  }
+
+  const filteredVans = useMemo(() => {
+    if (!debouncedSearch.trim()) return allVans;
+    const query = debouncedSearch.toLowerCase();
+    return allVans.filter(
+      (van) =>
+        van.location.toLowerCase().includes(query) ||
+        van.brand.toLowerCase().includes(query) ||
+        van.model.toLowerCase().includes(query)
+    );
+  }, [allVans, debouncedSearch]);
+
+  const showEmptyState = !loading && filteredVans.length === 0;
+  const showResults = !loading && filteredVans.length > 0;
+  const hasSearch = searchQuery.trim().length > 0;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-background text-foreground">
+      <section className="relative bg-primary py-24 text-center">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/90 to-primary" />
+        <div className="relative mx-auto max-w-7xl px-6">
+          <h1 className="text-4xl font-bold text-white sm:text-5xl">
+            Alquila la furgoinetta perfecta para tu proximo viaje
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-4 text-lg text-white/80">
+            Descubre las mejores furgoinetas al mejor precio
           </p>
+
+          <div className="mt-8 mx-auto max-w-4xl rounded-2xl bg-card p-2 shadow-xl">
+            <div className="flex flex-col md:flex-row">
+              <div className="flex items-center gap-2 rounded-lg px-4 py-3 md:flex-1">
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Donde quieres recoge? (ciudad, marca...)"
+                  className="flex-1 outline-none bg-transparent text-foreground"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <Button className="bg-[#FF5A5F] hover:bg-[#E84850] text-white md:rounded-xl px-8">
+                <Search className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <main className="mx-auto max-w-7xl px-6 py-12">
+        <div className="mb-8 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">
+            {hasSearch
+              ? `Resultados (${filteredVans.length})`
+              : `Furgonetas disponibles (${filteredVans.length})`}
+          </h2>
+          {user?.email === ADMIN_EMAIL && (
+            <Button onClick={addTestVan} disabled={adding} variant="outline" size="sm">
+              {adding ? "Añadiendo..." : "+ Añadir furgo de prueba"}
+            </Button>
+          )}
         </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Cargando...</p>
+          </div>
+        ) : showEmptyState ? (
+          <Card className="rounded-xl border-0 shadow-sm bg-card">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Truck className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-lg text-muted-foreground text-center">
+                {hasSearch
+                  ? `No hay furgoinetas que incluyan "${searchQuery}"`
+                  : "No hay furgoinetas disponibles"}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground text-center">
+                {hasSearch
+                  ? "Prueba con otra busqueda!"
+                  : "Añade una furgo de prueba para comenzar"}
+              </p>
+            </CardContent>
+          </Card>
+        ) : showResults ? (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {filteredVans.map((van, index) => (
+              <VanCard key={van.id} van={van} isBestOwner={index === 0} />
+            ))}
+          </div>
+        ) : null}
       </main>
     </div>
   );
