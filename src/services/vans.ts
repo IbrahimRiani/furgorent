@@ -221,6 +221,35 @@ export async function approveVan(id: string): Promise<boolean> {
   return true;
 }
 
+export async function rejectVan(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("vans")
+    .update({ status: "rejected" })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error rejecting van:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
+export async function getVansByStatus(status: string): Promise<Van[]> {
+  const { data, error } = await supabase
+    .from("vans")
+    .select("*")
+    .eq("status", status)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching vans by status:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
 export async function uploadVanImage(file: File): Promise<string | null> {
   const fileName = `${Date.now()}-${file.name.replace(/\s/g, "-")}`;
   
