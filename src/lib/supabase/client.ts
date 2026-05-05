@@ -7,4 +7,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storageKey: "furgorent-auth-token",
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});

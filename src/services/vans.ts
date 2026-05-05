@@ -146,6 +146,49 @@ export async function getUserBookings(userId: string): Promise<Booking[]> {
   return data || [];
 }
 
+export async function getVansByOwner(ownerId: string): Promise<Van[]> {
+  const { data, error } = await supabase
+    .from("vans")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching owner vans:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getBookingsForOwnerVans(ownerId: string): Promise<Booking[]> {
+  const { data: vans, error: vansError } = await supabase
+    .from("vans")
+    .select("id")
+    .eq("owner_id", ownerId);
+
+  if (vansError || !vans) {
+    console.error("Error fetching owner vans:", vansError?.message);
+    return [];
+  }
+
+  const vanIds = vans.map((v) => v.id);
+  if (vanIds.length === 0) return [];
+
+  const { data: bookings, error: bookingsError } = await supabase
+    .from("bookings")
+    .select("*, van:van_id(brand, model, location, photos)")
+    .in("van_id", vanIds)
+    .order("created_at", { ascending: false });
+
+  if (bookingsError) {
+    console.error("Error fetching owner bookings:", bookingsError.message);
+    return [];
+  }
+
+  return bookings || [];
+}
+
 export async function uploadVanImage(file: File): Promise<string | null> {
   const fileName = `${Date.now()}-${file.name.replace(/\s/g, "-")}`;
   
