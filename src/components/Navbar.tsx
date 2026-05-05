@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X, User, LogOut, Calendar, Settings } from "lucide-react";
+import { Sun, Moon, Menu, X, User, LogOut, Calendar, Settings, Key, Home, Search, Truck } from "lucide-react";
 
 const ADMIN_EMAIL = "ibrahim.riani91@gmail.com";
 
 export function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, viewMode, setViewMode } = useAuth();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -39,8 +39,12 @@ export function Navbar() {
     router.push("/");
   }
 
+  const toggleViewMode = () => {
+    setViewMode(viewMode === "viajero" ? "propietario" : "viajero");
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border">
+    <header className={`sticky top-0 z-50 bg-card border-b border-border ${viewMode === "propietario" ? "border-l-4 border-l-[#FF5A5F]" : ""}`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="text-2xl font-bold text-primary">
           FurgoRent
@@ -71,28 +75,78 @@ export function Navbar() {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 rounded-lg bg-card shadow-lg border border-border py-1">
+                <div className="absolute right-0 mt-2 w-56 rounded-lg bg-card shadow-lg border border-border py-1">
                   <div className="px-4 py-2 border-b border-border">
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    <p className="text-xs font-medium mt-1">
+                      {viewMode === "viajero" ? "Modo Viajero" : "Modo Propietario"}
+                    </p>
                   </div>
-                  <Link
-                    href="/mis-reservas"
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Calendar className="h-4 w-4" />
-                    Mis Reservas
-                  </Link>
-                  {isAdmin && (
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4" />
-                      Panel Admin
-                    </Link>
+
+                  {viewMode === "viajero" ? (
+                    <>
+                      <Link
+                        href="/mis-reservas"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Mis Viajes
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/mis-furgonetas"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Truck className="h-4 w-4" />
+                        Mis Furgonetas
+                      </Link>
+                      <Link
+                        href="/reservas-recibidas"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Reservas Recibidas
+                      </Link>
+                    </>
                   )}
+
+                  {isAdmin && (
+                    <>
+                      <div className="border-t my-1" />
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Settings className="h-4 w-4" />
+                        Panel Admin
+                      </Link>
+                    </>
+                  )}
+
+                  <div className="border-t my-1" />
+                  <button
+                    onClick={() => { toggleViewMode(); setMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full px-4 py-2 hover:bg-accent text-[#FF5A5F]"
+                  >
+                    {viewMode === "viajero" ? (
+                      <>
+                        <Key className="h-4 w-4" />
+                        Cambiar a Propietario
+                      </>
+                    ) : (
+                      <>
+                        <Search className="h-4 w-4" />
+                        Cambiar a Viajero
+                      </>
+                    )}
+                  </button>
+
                   <button
                     onClick={() => { handleSignOut(); setMenuOpen(false); }}
                     className="flex items-center gap-2 w-full px-4 py-2 text-destructive hover:bg-accent"

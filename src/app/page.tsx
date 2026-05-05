@@ -55,7 +55,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, viewMode } = useAuth();
   const [allVans, setAllVans] = useState<Van[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -144,7 +144,7 @@ export default function Home() {
               ? `Resultados (${filteredVans.length})`
               : `Furgonetas disponibles (${filteredVans.length})`}
           </h2>
-          {user?.email === ADMIN_EMAIL && (
+          {user?.email === ADMIN_EMAIL && viewMode === "propietario" && (
             <Button onClick={addTestVan} disabled={adding} variant="outline" size="sm">
               {adding ? "Añadiendo..." : "+ Añadir furgo de prueba"}
             </Button>

@@ -261,7 +261,7 @@ async function handleSubmit(e: React.FormEvent) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-white dark:bg-[#0B1120] border-b border-gray-100 dark:border-slate-800">
+      <header className="sticky top-0 z-01 bg-white dark:bg-[#0B1120] border-b border-gray-100 dark:border-slate-800">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white">
             <ArrowLeft className="h-4 w-4" />
