@@ -13,6 +13,7 @@ export interface Van {
   photos: string[] | null;
   amenities: string[] | null;
   is_available: boolean;
+  status: string;
   created_at: string;
 }
 
@@ -33,6 +34,7 @@ export async function getVans(location?: string): Promise<Van[]> {
     .from("vans")
     .select("*")
     .eq("is_available", true)
+    .eq("status", "approved")
     .order("created_at", { ascending: false });
 
   if (location && location.trim()) {
@@ -65,9 +67,10 @@ export async function getVanById(id: string): Promise<Van | null> {
 }
 
 export async function createVan(van: Omit<Van, "id" | "created_at" | "updated_at">): Promise<Van | null> {
+  const insertData = { ...van, status: "pending" };
   const { data, error } = await supabase
     .from("vans")
-    .insert([van])
+    .insert([insertData])
     .select()
     .single();
 
@@ -189,6 +192,35 @@ export async function getBookingsForOwnerVans(ownerId: string): Promise<Booking[
   return bookings || [];
 }
 
+export async function getPendingVans(): Promise<Van[]> {
+  const { data, error } = await supabase
+    .from("vans")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching pending vans:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function approveVan(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("vans")
+    .update({ status: "approved" })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error approving van:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
 export async function uploadVanImage(file: File): Promise<string | null> {
   const fileName = `${Date.now()}-${file.name.replace(/\s/g, "-")}`;
   
@@ -209,6 +241,7 @@ export async function uploadVanImage(file: File): Promise<string | null> {
 }
 
 export async function createVanWithImage(
+  ownerId: string,
   brand: string,
   model: string,
   location: string,
@@ -223,7 +256,7 @@ export async function createVanWithImage(
   }
 
   return createVan({
-    owner_id: null,
+    owner_id: ownerId,
     brand,
     model,
     location,
@@ -234,7 +267,22 @@ export async function createVanWithImage(
     longitude: null,
     amenities: null,
     is_available: true,
+    status: "pending",
   });
+}
+
+export async function updateVanStatus(id: string, status: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("vans")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating van status:", error.message);
+    return false;
+  }
+
+  return true;
 }
 
 export async function checkTables(): Promise<{ vans: boolean; bookings: boolean }> {

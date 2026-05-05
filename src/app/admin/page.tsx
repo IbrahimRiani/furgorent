@@ -4,11 +4,12 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
-import { getBookings, updateBookingStatus, createVanWithImage, Booking } from "@/services/vans";
+import { getBookings, updateBookingStatus, createVanWithImage, getPendingVans, approveVan, Booking, Van } from "@/services/vans";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CheckCircle, Clock, Truck, MapPin } from "lucide-react";
 
 const ADMIN_EMAIL = "ibrahim.riani91@gmail.com";
 
@@ -16,6 +17,7 @@ export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [pendingVans, setPendingVans] = useState<Van[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -27,21 +29,25 @@ export default function AdminPage() {
       if (user.email !== ADMIN_EMAIL) {
         router.push("/");
       } else {
-        loadBookings();
+        loadData();
       }
     }
   }, [user, authLoading, router]);
 
   useEffect(() => {
     if (user && user.email === ADMIN_EMAIL) {
-      loadBookings();
+      loadData();
     }
   }, [user]);
 
-  async function loadBookings() {
+  async function loadData() {
     setLoading(true);
-    const data = await getBookings();
-    setBookings(data);
+    const [bookingsData, vansData] = await Promise.all([
+      getBookings(),
+      getPendingVans()
+    ]);
+    setBookings(bookingsData);
+    setPendingVans(vansData);
     setLoading(false);
   }
 
@@ -54,6 +60,13 @@ export default function AdminPage() {
     }
   }
 
+  async function handleApproveVan(id: string) {
+    const success = await approveVan(id);
+    if (success) {
+      setPendingVans((prev) => prev.filter((v) => v.id !== id));
+    }
+  }
+
   async function handleAddVan(e: React.FormEvent) {
     e.preventDefault();
     if (!newVan.brand || !newVan.model || !newVan.location || !newVan.price || !newVan.image) return;
@@ -61,6 +74,7 @@ export default function AdminPage() {
     setAdding(true);
     const price = parseFloat(newVan.price) * 100;
     await createVanWithImage(
+      user!.id,
       newVan.brand,
       newVan.model,
       newVan.location,
@@ -115,6 +129,48 @@ export default function AdminPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-8 space-y-8">
+        {pendingVans.length > 0 && (
+          <Card className="rounded-xl border-0 shadow-md dark:bg-slate-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-yellow-500" />
+                Furgonetas Pendientes de Aprobar ({pendingVans.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {pendingVans.map((van) => (
+                  <div key={van.id} className="flex items-center justify-between rounded-lg border p-4 dark:border-slate-700">
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-24 rounded-lg bg-muted overflow-hidden">
+                        {van.photos?.[0] ? (
+                          <img src={van.photos[0]} alt={van.brand} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Truck className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{van.brand} {van.model}</p>
+                        <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {van.location}
+                        </p>
+                        <p className="text-sm text-primary">{(van.price_per_day / 100).toFixed(0)} EUR/día</p>
+                      </div>
+                    </div>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleApproveVan(van.id)}>
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Aprobar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="rounded-xl border-0 shadow-md dark:bg-slate-800">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Añadir Furgoneta</CardTitle>
@@ -201,7 +257,7 @@ export default function AdminPage() {
         <Card className="rounded-xl border-0 shadow-md dark:bg-slate-800">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Reservas ({bookings.length})</CardTitle>
-            <Button variant="outline" size="sm" onClick={loadBookings}>
+            <Button variant="outline" size="sm" onClick={loadData}>
               Actualizar
             </Button>
           </CardHeader>
