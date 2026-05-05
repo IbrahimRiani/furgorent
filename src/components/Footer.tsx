@@ -9,7 +9,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-white">FurgoRent</h3>
             <p className="text-sm text-slate-400">
-              Alquila la furgoineta perfecta para tu proximo viaje.
+              Alquila la furgoneta perfecta para tu proximo viaje.
             </p>
           </div>
 

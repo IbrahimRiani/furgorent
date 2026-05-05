@@ -103,10 +103,10 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/90 to-primary" />
         <div className="relative mx-auto max-w-7xl px-6">
           <h1 className="text-4xl font-bold text-white sm:text-5xl">
-            Alquila la furgoinetta perfecta para tu proximo viaje
+            Alquila la furgoneta perfecta para tu proximo viaje
           </h1>
           <p className="mt-4 text-lg text-white/80">
-            Descubre las mejores furgoinetas al mejor precio
+            Descubre las mejores furgonetas al mejor precio
           </p>
 
           <div className="mt-8 mx-auto max-w-4xl rounded-2xl bg-card p-2 shadow-xl">
@@ -115,7 +115,7 @@ export default function Home() {
                 <MapPin className="h-5 w-5 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Donde quieres recoge? (ciudad, marca...)"
+                  placeholder="Donde quieres recoger? (ciudad, marca...)"
                   className="flex-1 outline-none bg-transparent text-foreground"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

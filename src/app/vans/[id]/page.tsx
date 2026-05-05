@@ -136,7 +136,7 @@ export default function VanPage({ params }: VanPageProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-gray-500">Cargando...</p>
+        <p className="text-muted-foreground">Cargando...</p>
       </div>
     );
   }
@@ -250,7 +250,7 @@ async function handleSubmit(e: React.FormEvent) {
   const features = [
     { icon: Users, label: "3 Plazas" },
     { icon: Snowflake, label: "Aire acondicionado" },
-    { icon: Fuel, label: "Diisel" },
+    { icon: Fuel, label: "Diesel" },
     { icon: Settings, label: "Cambio manual" },
   ];
 
@@ -261,20 +261,14 @@ async function handleSubmit(e: React.FormEvent) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-01 bg-white dark:bg-[#0B1120] border-b border-gray-100 dark:border-slate-800">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white">
-            <ArrowLeft className="h-4 w-4" />
-            Volver
-          </Link>
-          <Link href="/" className="text-2xl font-bold text-primary">
-            FurgoRent
-          </Link>
-          <div className="w-20" />
-        </div>
-      </header>
+      <div className="p-6">
+        <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground w-fit">
+          <ArrowLeft className="h-4 w-4" />
+          Volver
+        </Link>
+      </div>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-6 pb-8">
         <div className="grid gap-8 lg:grid-cols-5">
           <div className="lg:col-span-3 space-y-6">
             <div className="aspect-video w-full overflow-hidden rounded-xl bg-gray-100 shadow-md">
@@ -289,7 +283,7 @@ async function handleSubmit(e: React.FormEvent) {
               {features.map((feature, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-700"
+                  className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm text-foreground"
                 >
                   <feature.icon className="h-4 w-4" />
                   {feature.label}
@@ -318,7 +312,7 @@ async function handleSubmit(e: React.FormEvent) {
                     <Check className="h-4 w-4 text-green-500" /> Seguro a todo riesgo
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-500" /> Assistance en carretera
+                    <Check className="h-4 w-4 text-green-500" /> Asistencia en carretera
                   </li>
                 </ul>
               </CardContent>

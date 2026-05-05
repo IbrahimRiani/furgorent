@@ -44,7 +44,7 @@ export function Navbar() {
   };
 
   return (
-    <header className={`sticky top-0 z-50 bg-card border-b border-border ${viewMode === "propietario" ? "border-l-4 border-l-[#FF5A5F]" : ""}`}>
+    <header className={`sticky top-0 z-01 bg-card border-b border-border ${viewMode === "propietario" ? "border-l-4 border-l-[#FF5A5F]" : ""}`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="text-2xl font-bold text-primary">
           FurgoRent
@@ -75,7 +75,7 @@ export function Navbar() {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-lg bg-card shadow-lg border border-border py-1">
+                <div className="absolute right-0 z-100 mt-2 w-56 rounded-lg bg-card shadow-lg border border-border py-1">
                   <div className="px-4 py-2 border-b border-border">
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     <p className="text-xs font-medium mt-1">
